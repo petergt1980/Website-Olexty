@@ -1,0 +1,41 @@
+/* Admin CRUD. Semua aksi tulis diperiksa lagi oleh RLS Supabase. */
+(async()=>{
+ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)], sb=window.supabaseClient;
+ const auth=await window.CFF.requireAuth(true);if(!auth||!sb)return;
+ const notice=$("#adminNotice"),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const show=(s,type="success")=>window.CFF.message(notice,s,type);
+ const call=async(p)=>{const {data,error}=await p;if(error)throw error;return data};
+ const rows=async(table,order="created_at")=>{try{return await call(sb.from(table).select("*").order(order,{ascending:true}))||[]}catch(e){console.warn(table,e.message);return []}};
+ const upload=async(file,folder)=>file?window.CFF.upload(file,folder):null;
+ async function del(table,id){if(!confirm("Yakin ingin menghapus data ini?"))return;try{await call(sb.from(table).delete().eq("id",id));show("Data berhasil dihapus.");await renderAll()}catch(e){show(e.message,"error")}}
+ function item(title,sub,buttons=""){return `<div class="admin-list-item"><div><strong>${esc(title)}</strong><small>${esc(sub||"")}</small></div><div class="row-actions">${buttons}</div></div>`}
+ function editBtn(kind,r){return `<button class="mini-btn" data-edit="${kind}" data-row="${encodeURIComponent(JSON.stringify(r))}">Edit</button><button class="mini-btn danger" data-delete="${kind}" data-id="${r.id}">Hapus</button>`}
+ async function renderAll(){
+  const [profiles,banners,circles,teams,events,gallery,socials]=await Promise.all([rows("profiles","username"),rows("banners","urutan"),rows("circle_profile"),rows("team_members","urutan"),rows("events","date"),rows("gallery","taken_at"),rows("socials","urutan")]);
+  $("#dashboardStats").innerHTML=[["Total member",profiles.length],["Banner",banners.length],["Event",events.length],["Galeri",gallery.length]].map(([k,v])=>`<div class="stat-card glass"><small>${k}</small><strong>${v}</strong></div>`).join("");
+  $("#bannerList").innerHTML=banners.map(r=>item(r.title,`${r.type} · urutan ${r.urutan} · ${r.is_active?"Aktif":"Nonaktif"}`,`<button class="mini-btn" data-toggle-banner="${r.id}" data-active="${r.is_active}">${r.is_active?"Nonaktifkan":"Aktifkan"}</button>${editBtn("banner",r)}`)).join("")||'<p class="muted">Belum ada banner.</p>';
+  const c=circles[0];if(c){const f=$("#circleForm");f.elements.description.value=c.description||"";f.elements.founded_year.value=c.founded_year||2021;f.elements.tagline.value=c.tagline||"";}
+  $("#teamList").innerHTML=teams.map(r=>item(r.name,`${r.position} · ${r.type}`,editBtn("team",r))).join("")||'<p class="muted">Belum ada tim.</p>';
+  $("#memberList").innerHTML=profiles.map(r=>item(r.username||"Member",`${r.role||"member"} · ${r.nickname_epep||r.id}`,`<select class="role-select" data-role="${r.id}"><option ${r.role!=="admin"?"selected":""} value="member">Member</option><option ${r.role==="admin"?"selected":""} value="admin">Admin</option></select><button class="mini-btn" data-save-role="${r.id}">Simpan role</button>${r.role==="admin"?"":`<button class="mini-btn danger" data-delete-profile="${r.id}">Hapus profil</button>`}`)).join("")||'<p class="muted">Belum ada member.</p>';
+  $("#eventList").innerHTML=events.map(r=>item(r.title,r.date,editBtn("event",r))).join("")||'<p class="muted">Belum ada event.</p>';
+  $("#galleryList").innerHTML=gallery.map(r=>item(r.caption||r.media_url,`${r.type} · ${r.taken_at||""}`,`<button class="mini-btn danger" data-delete="gallery" data-id="${r.id}">Hapus</button>`)).join("")||'<p class="muted">Belum ada galeri.</p>';
+  $("#socialList").innerHTML=socials.map(r=>item(r.platform,r.url,editBtn("social",r))).join("")||'<p class="muted">Belum ada link sosial.</p>';
+ }
+ $("#adminTabs").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(!b)return;$$(".tab-button").forEach(x=>x.classList.toggle("active",x===b));$$(".admin-tab").forEach(x=>x.classList.toggle("active",x.id==="tab-"+b.dataset.tab));});
+ document.addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;try{
+  if(b.dataset.delete)await del(({banner:"banners",team:"team_members",event:"events",gallery:"gallery",social:"socials"})[b.dataset.delete],b.dataset.id);
+  if(b.dataset.deleteProfile){if(!confirm("Hapus data profil ini? Akun Auth tidak ikut terhapus dari client publik."))return;await call(sb.from("profiles").delete().eq("id",b.dataset.deleteProfile));show("Profil dihapus. Untuk menghapus akun Auth, gunakan Supabase Dashboard.");await renderAll();}
+  if(b.dataset.toggleBanner){await call(sb.from("banners").update({is_active:b.dataset.active!=="true"}).eq("id",b.dataset.toggleBanner));show("Status banner diperbarui.");await renderAll();}
+  if(b.dataset.saveRole){const role=$(`[data-role="${b.dataset.saveRole}"]`).value;await call(sb.from("profiles").update({role}).eq("id",b.dataset.saveRole));show("Role diperbarui.");await renderAll();}
+  if(b.dataset.edit){const r=JSON.parse(decodeURIComponent(b.dataset.row)),kind=b.dataset.edit,form=$("#"+kind+"Form");for(const el of form.elements){if(el.name&&r[el.name]!==undefined&&el.type!=="file")el.value=r[el.name]??"";}if(form.elements.id)form.elements.id.value=r.id;if(form.elements.is_active)form.elements.is_active.checked=!!r.is_active;if(form.elements.type&&r.type)form.elements.type.value=r.type;form.scrollIntoView({behavior:"smooth",block:"center"});}
+ }catch(err){show(err.message,"error")}});
+ async function saveForm(id,table,folder,fields){const f=$("#"+id);f.addEventListener("submit",async e=>{e.preventDefault();const btn=f.querySelector('button[type="submit"],button:not([type])');if(btn){btn.disabled=true;}try{const fd=new FormData(f),row={};for(const field of fields)if(fd.has(field))row[field]=fd.get(field);if(fd.has("urutan"))row.urutan=Number(fd.get("urutan")||0);if(fd.has("founded_year"))row.founded_year=Number(fd.get("founded_year")||2021);if(fd.has("is_active"))row.is_active=fd.get("is_active")==="on";if(fd.has("date"))row.date=fd.get("date");if(fd.has("taken_at"))row.taken_at=fd.get("taken_at");const file=fd.get("file");if(file instanceof File&&file.size){const url=await upload(file,folder);row[({banners:"media_url",team_members:"photo",events:"poster",circle_profile:"logo"})[table]||"media_url"]=url;}const idVal=fd.get("id");if(idVal)await call(sb.from(table).update(row).eq("id",idVal));else await call(sb.from(table).insert(row));show("Berhasil disimpan.");f.reset();if(f.elements.id)f.elements.id.value="";await renderAll();}catch(err){show(err.message,"error")}finally{if(btn)btn.disabled=false;}});}
+ await saveForm("bannerForm","banners","banners",["title","type","urutan","is_active"]);
+ await saveForm("teamForm","team_members","team",["name","position","bio","urutan","type"]);
+ await saveForm("eventForm","events","events",["title","date","description"]);
+ await saveForm("socialForm","socials","socials",["platform","url","urutan"]);
+ $("#circleForm").addEventListener("submit",async e=>{e.preventDefault();try{const f=e.currentTarget,fd=new FormData(f),row={description:fd.get("description"),founded_year:Number(fd.get("founded_year")||2021),tagline:fd.get("tagline")};const file=fd.get("logo");if(file instanceof File&&file.size)row.logo=await upload(file,"logo");const current=await rows("circle_profile");if(current[0])await call(sb.from("circle_profile").update(row).eq("id",current[0].id));else await call(sb.from("circle_profile").insert({id:1,...row}));show("Profil circle diperbarui.");}catch(err){show(err.message,"error")}});
+ $("#galleryForm").addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget,btn=f.querySelector("button");btn.disabled=true;try{const files=[...f.elements.files.files];for(const file of files){const url=await upload(file,"gallery");await call(sb.from("gallery").insert({media_url:url,type:file.type.startsWith("video/")?"video":"image",caption:f.elements.caption.value||file.name,taken_at:f.elements.taken_at.value||new Date().toISOString().slice(0,10)}));}show(`${files.length} file berhasil diupload.`);f.reset();await renderAll()}catch(err){show(err.message,"error")}finally{btn.disabled=false;}});
+ $$("[data-reset]").forEach(b=>b.addEventListener("click",()=>$( "#"+b.dataset.reset).reset()));
+ await renderAll();
+})();

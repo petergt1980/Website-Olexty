@@ -1,0 +1,24 @@
+/* Auth Supabase. Supabase JS mengelola sesi auth sendiri; tidak memakai localStorage/sessionStorage buatan aplikasi. */
+(() => {
+ const sb=()=>window.supabaseClient;
+ const $=(s,r=document)=>r.querySelector(s);
+ window.CFF={
+  sb, ready:()=>window.SUPABASE_READY,
+  toast(message,type="info"){const root=$("#toastRoot")||document.body;const el=document.createElement("div");el.className=`toast ${type}`;el.textContent=message;root.appendChild(el);setTimeout(()=>el.remove(),4200);},
+  message(el,msg,type="error"){if(!el)return;el.textContent=msg;el.className=`form-message ${type}`;el.classList.remove("hidden");},
+  async session(){if(!sb())return null;const {data,error}=await sb().auth.getSession();if(error)console.warn(error);return data?.session||null;},
+  async profile(){const session=await this.session();if(!session)return null;const {data,error}=await sb().from("profiles").select("*").eq("id",session.user.id).maybeSingle();if(error)throw error;return data;},
+  async requireAuth(admin=false){if(!sb()){location.href="login.html?setup=1";return null;}const session=await this.session();if(!session){location.href="login.html";return null;}let profile;try{profile=await this.profile()}catch(e){this.toast("Gagal membaca profil: "+e.message,"error");return null;}if(admin&&profile?.role!=="admin"){location.href="profile.html";return null;}return {session,profile};},
+  async logout(){if(sb())await sb().auth.signOut();location.href="index.html";},
+  async upload(file,folder="misc"){if(!sb())throw new Error("Supabase belum dikonfigurasi.");if(!file) return null;if(file.size>20*1024*1024)throw new Error("Ukuran file maksimal 20 MB.");const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");const path=`${folder}/${crypto.randomUUID()}-${safe}`;const {data,error}=await sb().storage.from("uploads").upload(path,file,{upsert:false,contentType:file.type});if(error)throw error;const {data:pub}=sb().storage.from("uploads").getPublicUrl(data.path);return pub.publicUrl;},
+  async logError(error){console.error(error);this.toast(error?.message||"Terjadi kesalahan. Coba lagi.","error");}
+ };
+ document.addEventListener("click",e=>{const b=e.target.closest("[data-logout]");if(b){e.preventDefault();window.CFF.logout();}});
+ const login=$("#loginForm");
+ if(login)login.addEventListener("submit",async e=>{e.preventDefault();const btn=login.querySelector("button[type=submit]"),msg=$("#formMessage");btn.disabled=true;btn.textContent="MEMPROSES…";try{if(!sb())throw new Error("Supabase belum disetel. Isi URL dan anon key di js/supabase-config.js.");const f=new FormData(login);const {data,error}=await sb().auth.signInWithPassword({email:String(f.get("email")).trim(),password:String(f.get("password"))});if(error)throw error;const {data:p,error:pe}=await sb().from("profiles").select("role").eq("id",data.user.id).maybeSingle();if(pe)throw pe;if(!p)throw new Error("Profil belum tersedia. Jalankan SQL setup.sql di Supabase.");location.href=p.role==="admin"?"admin.html":"profile.html";}catch(err){window.CFF.message(msg,err.message||"Login gagal.","error");}finally{btn.disabled=false;btn.textContent="MASUK SEKARANG ↗";}});
+ const reg=$("#registerForm");
+ if(reg)reg.addEventListener("submit",async e=>{e.preventDefault();const btn=reg.querySelector("button[type=submit]"),msg=$("#formMessage");btn.disabled=true;btn.textContent="MEMBUAT AKUN…";try{if(!sb())throw new Error("Supabase belum disetel. Isi URL dan anon key di js/supabase-config.js.");const f=new FormData(reg),username=String(f.get("username")).trim(),email=String(f.get("email")).trim().toLowerCase(),password=String(f.get("password"));if(username.length<3)throw new Error("Username minimal 3 karakter.");if(password.length<6)throw new Error("Password minimal 6 karakter.");if(password!==f.get("confirmPassword"))throw new Error("Konfirmasi password tidak cocok.");const {data,error}=await sb().auth.signUp({email,password,options:{data:{username}}});if(error)throw error;if(data.user&&!data.session)alert("Pendaftaran berhasil. Cek email untuk verifikasi, lalu login.");else alert("Pendaftaran berhasil. Silakan login.");location.href="login.html";}catch(err){window.CFF.message(msg,err.message||"Registrasi gagal.","error");}finally{btn.disabled=false;btn.textContent="BUAT AKUN ↗";}});
+ document.querySelectorAll(".nav-toggle").forEach(b=>b.addEventListener("click",()=>$("#navMenu")?.classList.toggle("open")));
+ document.querySelectorAll("#yearNow").forEach(el=>el.textContent=new Date().getFullYear());
+ document.addEventListener("DOMContentLoaded",async()=>{const nav=$("#authNav");if(!nav||!sb())return;try{const s=await window.CFF.session();if(s){const p=await window.CFF.profile();nav.href=p?.role==="admin"?"admin.html":"profile.html";nav.textContent=p?.role==="admin"?"Admin Panel":"Profil Saya";}}catch(e){console.warn(e)}});
+})();

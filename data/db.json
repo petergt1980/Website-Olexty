@@ -1,0 +1,37 @@
+{
+  "banners": [
+    {"id":"demo-banner-1","media_url":"img/hero.svg","type":"image","title":"Circle OLEXTY","urutan":1,"is_active":true},
+    {"id":"demo-banner-2","media_url":"img/placeholder.svg","type":"image","title":"Unity in Fire","urutan":2,"is_active":true}
+  ],
+  "circle_profile":[{"id":1,"description":"Circle OLEXTY yang solid dan aktif. Tempat untuk mabar, saling mendukung, dan membangun pertemanan.","founded_year":2021,"logo":"img/logo.svg","tagline":"Unity in Fire"}],
+  "team_members":[
+    {"id":"team-1","name":"Raven","position":"Founder","photo":"img/placeholder.svg","bio":"Membangun komunitas yang solid dan suportif.","urutan":1,"type":"founder"},
+    {"id":"team-2","name":"Kira","position":"Community Admin","photo":"img/placeholder.svg","bio":"Mengatur kegiatan dan menjaga komunikasi circle.","urutan":2,"type":"admin"},
+    {"id":"team-3","name":"Axel","position":"Squad Leader","photo":"img/placeholder.svg","bio":"Gas mabar dan bantu squad berkembang.","urutan":3,"type":"admin"}
+  ],
+  "profiles":[
+    {"id":"demo-1","username":"Raven","avatar":"img/placeholder.svg","role":"member","nickname_epep":"RAVEN々","id_epep":"123456789","id_epep_public":true},
+    {"id":"demo-2","username":"Kira","avatar":"img/placeholder.svg","role":"member","nickname_epep":"KIRAAツ","id_epep":"234567891","id_epep_public":false},
+    {"id":"demo-3","username":"Axel","avatar":"img/placeholder.svg","role":"member","nickname_epep":"AXEL亗","id_epep":"345678912","id_epep_public":true}
+  ],
+  "events":[
+    {"id":"event-1","title":"Weekly Mabar Night","date":"2027-01-15","poster":"img/hero.svg","description":"Kumpul squad, push rank, dan seru-seruan bareng Circle."},
+    {"id":"event-2","title":"Custom Room Challenge","date":"2027-02-01","poster":"img/placeholder.svg","description":"Tunjukkan skill terbaikmu dalam custom room komunitas."},
+    {"id":"event-3","title":"Circle Tournament","date":"2027-02-20","poster":"img/hero.svg","description":"Turnamen internal untuk mempererat persahabatan."}
+  ],
+  "gallery":[
+    {"id":"gallery-1","media_url":"img/hero.svg","type":"image","caption":"Circle vibes","taken_at":"2026-09-12"},
+    {"id":"gallery-2","media_url":"img/placeholder.svg","type":"image","caption":"Squad memories","taken_at":"2026-08-21"},
+    {"id":"gallery-3","media_url":"img/hero.svg","type":"image","caption":"Unity in Fire","taken_at":"2026-07-15"},
+    {"id":"gallery-4","media_url":"img/placeholder.svg","type":"image","caption":"Mabar time","taken_at":"2026-06-30"},
+    {"id":"gallery-5","media_url":"img/hero.svg","type":"image","caption":"One Circle","taken_at":"2026-06-10"},
+    {"id":"gallery-6","media_url":"img/placeholder.svg","type":"image","caption":"Good game","taken_at":"2026-05-20"}
+  ],
+  "socials":[
+    {"id":"social-1","platform":"Discord","url":"https://discord.gg/KxenXUhaj2","urutan":1},
+    {"id":"social-2","platform":"WhatsApp","url":"https://chat.whatsapp.com/C0dhVOf7qhe6FZOO4lLJgp?s=cl&p=a&mlu=4&ilr=4","urutan":2},
+    {"id":"social-3","platform":"Tiktok Ladies","url":"https://www.tiktok.com/@olexty.lds","urutan":3},
+    {"id":"social-4","platform":"TikTok Boy","url":"https://www.tiktok.com/@olexty.allbase","urutan":4}
+  ],
+  "announcement":[{"text":"WELCOME TO CIRCLE OLEXTY — cek event terbaru untuk menjadi team intidan ajak teman kamu untuk bergabung ke circle OLEXTY!","is_active":true}]
+}
