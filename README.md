@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Circle OLEXTY — Static + Supabase
 
 Website komunitas murni **HTML5 + CSS3 + JavaScript vanilla**. Hosting target Netlify Drop; Auth, database, dan Storage menggunakan Supabase. Tidak ada Express, Node backend, React, Next, localStorage, atau sessionStorage buatan aplikasi. Supabase Auth SDK mengelola sesi login.
@@ -51,3 +52,6 @@ Untuk update, drag folder terbaru ke Netlify lagi atau hubungkan repository GitH
 - Role admin tidak boleh diubah oleh user biasa. RLS melindungi perubahan role; promosi admin pertama dilakukan lewat SQL.
 - Untuk produksi, pertimbangkan kebijakan email verification, rate limiting, Content Security Policy, dan audit policy RLS.
 - Netlify static hosting tidak menjalankan backend; semua otorisasi harus enforced oleh Supabase RLS, bukan hanya menyembunyikan tab admin.
+=======
+# Website-Olexty
+>>>>>>> 4a1569eea6623d3adccfcf5b86d3dd80d7b24f3c
