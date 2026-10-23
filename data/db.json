@@ -1,7 +1,7 @@
 {
   "banners": [
     {"id":"demo-banner-1","media_url":"img/hero.svg","type":"image","title":"Circle OLEXTY","urutan":1,"is_active":true},
-    {"id":"demo-banner-2","media_url":"img/placeholder.svg","type":"image","title":"Unity in Fire","urutan":2,"is_active":true}
+    {"id":"demo-banner-2","media_url":"img/OLEXTY.jpg","type":"image","title":"Unity in Fire","urutan":2,"is_active":true}
   ],
   "circle_profile":[{"id":1,"description":"Circle OLEXTY yang solid dan aktif. Tempat untuk mabar, saling mendukung, dan membangun pertemanan.","founded_year":2021,"logo":"img/logo.svg","tagline":"Unity in Fire"}],
   "team_members":[
